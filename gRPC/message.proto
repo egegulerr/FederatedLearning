@@ -1,0 +1,36 @@
+syntax = 'proto3';
+
+package grpcThesis;
+
+message TensorList {
+  repeated Tensor tensors = 1;
+}
+
+message Tensor {
+  bytes data = 1;
+  repeated int32 shape = 2;
+}
+
+message ServerMessage {
+  TensorList list_tensors = 1;
+}
+
+message ClientMessage{
+  int32 client_id = 3;
+  int32 data_length = 1;
+  TensorList list_tensors = 2;
+}
+
+message Empty{
+  int32 value = 1;
+}
+
+message IsReady {
+  bool ready = 1;
+}
+
+service FederatedLearning{
+  rpc IsWeightsReady(Empty) returns (IsReady) {}
+  rpc GetAvgWeightsFromServer(Empty) returns (TensorList) {}
+  rpc SendWeightsToServer(ClientMessage) returns (Empty) {}
+}
