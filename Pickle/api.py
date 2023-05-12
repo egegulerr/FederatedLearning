@@ -4,7 +4,6 @@ import pickle
 import uvicorn
 from fastapi.responses import FileResponse, Response
 from model import ModelWrapper
-from server import aggregate_weights
 import redis
 
 NUMBER_OF_CLIENTS = 2
@@ -101,6 +100,15 @@ def increment_client_count():
         redix.set("count", int(count.decode()) + 1)
     else:
         redix.set("count", 1)
+
+def aggregate_weights(weights_dict, data_point_legths):
+    total_data_points = sum(data_point_legths)
+    for index in range(len(weights_dict)):
+        scalar = data_point_legths[index] / total_data_points
+        for n_array_index in range(len(weights_dict[index])):
+            weights_dict[index][n_array_index] *= scalar
+    new_weights = [sum(x) for x in zip(*weights_dict)]
+    return new_weights
 
 
 def run_api():
