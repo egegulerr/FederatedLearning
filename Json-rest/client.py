@@ -54,8 +54,7 @@ def Main():
         model.set_weights(weights)
         model, trained_data_length = train_model(model)
 
-    print("Model is trained. Sending it weights to server")
-    send_weights(trained_model.get_weights(), SerializationTypes.JSON.value)
+    print("Federated Learning is finished.")
 
 
 if __name__ == "__main__":
