@@ -4,8 +4,8 @@ import pickle
 import uvicorn
 from fastapi.responses import FileResponse, Response
 from model import ModelWrapper
-from server import aggregate_weights
 import redis
+from codecarbon import EmissionsTracker
 
 NUMBER_OF_CLIENTS = 2
 
@@ -37,9 +37,6 @@ def get_model(model_type: ModelType):
 
     if model_type is ModelType.pickle:
         return FileResponse("saved_models/model_pickel/model.pkl")
-
-    if model_type is ModelType.json:
-        return FileResponse("saved_models/model_json/model_json.json")
 
     return HTTPException(
         status_code=404, detail=f"Wanted serialization method does not exist"
@@ -102,10 +99,22 @@ def increment_client_count():
     else:
         redix.set("count", 1)
 
+def aggregate_weights(weights_dict, data_point_legths):
+    total_data_points = sum(data_point_legths)
+    for index in range(len(weights_dict)):
+        scalar = data_point_legths[index] / total_data_points
+        for n_array_index in range(len(weights_dict[index])):
+            weights_dict[index][n_array_index] *= scalar
+    new_weights = [sum(x) for x in zip(*weights_dict)]
+    return new_weights
+
 
 def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
+    tracker = EmissionsTracker()
+    tracker.start()
     run_api()
+    tracker.stop()

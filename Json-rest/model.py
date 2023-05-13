@@ -1,11 +1,8 @@
-import json
 import random
 
 import tensorflow as tf
 from tensorflow import keras
 import pickle
-import requests
-import numpy as np
 
 
 class ModelWrapper:
@@ -80,43 +77,3 @@ def create_model():
     print(model.summary())
 
     return model
-
-
-def save_model(model, method: str):
-    method = method.lower()
-
-    if method == "json":
-        # Convert Model Architecture to JSON
-        model_json = model.to_json()
-        # Convert Model Weights to JSON
-        weights = model.get_weights()
-
-        with open("../saved_models/model_json/model_json.json", "w") as json_file:
-            json_file.write(model_json)
-        print("Model Arc. saved as JSON with name model_json")
-        weights_dict = {}
-        for i, weight in enumerate(weights):
-            weights_dict["weights_" + str(i)] = weight.tolist()
-
-        with open("../saved_models/model_json/weights_json.json", "w") as f:
-            json.dump(weights_dict, f)
-        print("Model weights saved as JSON with name weights_json")
-
-    if method == "protobuffer":
-        # Save model and its weights as Protobuffer
-        model.save("saved_models/model_protobuffer/protobuffer/")
-        print(
-            "Model arc and weights saved as Protobuffer in model_protobuffer directory"
-        )
-
-    if method == "pickle":
-        wraped = ModelWrapper(model)
-        weights = model.get_weights()
-
-        with open("../saved_models/model_pickel/model.pkl", "wb") as f:
-            pickle.dump(wraped, f)
-            print("Model arc and weights saved as Pickel in model_pickel directory")
-
-        with open("../saved_models/model_pickel/model_weights.pkl", "wb") as f:
-            pickle.dump(weights, f)
-            print("Model weights saved as Pickel in model_pickel directory")

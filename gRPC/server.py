@@ -5,7 +5,7 @@ import message_pb2
 from concurrent import futures
 import numpy as np
 import redis
-
+from codecarbon import EmissionsTracker
 
 redix = redis.Redis(host="localhost", port=6379)
 print("Redix databse started")
@@ -103,4 +103,9 @@ def main():
 
 
 if __name__ == "__main__":
+    tracker = EmissionsTracker()
+    tracker.start()
+
     main()
+
+    tracker.stop()

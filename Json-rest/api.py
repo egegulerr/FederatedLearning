@@ -1,13 +1,14 @@
 import json
 from enum import Enum
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 import pickle
 import uvicorn
 from fastapi.responses import FileResponse
 from model import ModelWrapper
-from server import deploy_model, aggregate_weights
 import numpy as np
 import redis
+from codecarbon import EmissionsTracker
+
 
 NUMBER_OF_CLIENTS = 2
 
@@ -21,25 +22,6 @@ class ModelType(str, Enum):
 
 app = FastAPI()
 redix = redis.Redis(host="localhost", port=6379)
-
-@app.get(
-    "/getmodel/{model_type}",
-    description="Get ML model depending on chosen serialized method",
-)
-def get_model(model_type: ModelType):
-
-    if model_type is ModelType.pickle:
-        return FileResponse("../saved_models/model_pickel/model.pkl")
-
-    if model_type is ModelType.json:
-        return FileResponse("../saved_models/model_json/model_json.json")
-
-    if model_type is ModelType.protobuffer:
-        pass
-
-    return HTTPException(
-        status_code=404, detail=f"Wanted serialization method does not exist"
-    )
 
 
 @app.get("/geweights/{model_type}", description="Get ML model weights for JSON Model")
@@ -68,33 +50,23 @@ def get_avg_weights(model_type: str):
 async def send_weights(
     serialized_type: str, client_id: str, trained_data_length: int, request: Request
 ):
-    if serialized_type == ModelType.pickle.value:
-        serialized_type = ModelType.pickle.name
-        data: bytes = await request.body()
-        content = pickle.loads(data)
 
-    if serialized_type == ModelType.json.value:
-        serialized_type = ModelType.json.name
-        file_content = await request.body()
+    file_content = await request.body()
 
-        increment_client_count()
-        redix.delete("new_weights")
-        client_count = int(redix.get("count").decode())
-        if client_count <= NUMBER_OF_CLIENTS:
-            redix.set(client_id, file_content)
-            redix.set(f"{client_id}_length", trained_data_length)
-        if client_count == NUMBER_OF_CLIENTS:
-            redix.set("count", 0)
+    increment_client_count()
+    redix.delete("new_weights")
+    client_count = int(redix.get("count").decode())
+    if client_count <= NUMBER_OF_CLIENTS:
+        redix.set(client_id, file_content)
+        redix.set(f"{client_id}_length", trained_data_length)
+    if client_count == NUMBER_OF_CLIENTS:
+        redix.set("count", 0)
 
-            weights, data_lengths = prepare_weights()
-            new_weights = aggregate_weights(weights, data_lengths)
-            redix.set("new_weights", pickle.dumps(new_weights))
-
-    if serialized_type == "prtobuffer":
-        pass
+        weights, data_lengths = prepare_weights()
+        new_weights = aggregate_weights(weights, data_lengths)
+        redix.set("new_weights", pickle.dumps(new_weights))
 
     print("Got the weights from the client. Setting weights")
-    # deploy_model(content, serialized_type)
 
 
 @app.get("/", description="Health Check")
@@ -131,10 +103,24 @@ def increment_client_count():
     else:
         redix.set("count", 1)
 
+def aggregate_weights(weights_dict, data_point_legths):
+    total_data_points = sum(data_point_legths)
+    for index in range(len(weights_dict)):
+        scalar = data_point_legths[index] / total_data_points
+        for n_array_index in range(len(weights_dict[index])):
+            weights_dict[index][n_array_index] *= scalar
+    new_weights = [sum(x) for x in zip(*weights_dict)]
+    return new_weights
+
 
 def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
+    tracker = EmissionsTracker()
+    tracker.start()
+
     run_api()
+
+    tracker.stop()
