@@ -10,7 +10,7 @@ import redis
 from codecarbon import EmissionsTracker
 
 
-NUMBER_OF_CLIENTS = 2
+NUMBER_OF_CLIENTS = 3
 
 
 class ModelType(str, Enum):
