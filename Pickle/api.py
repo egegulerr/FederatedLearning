@@ -37,9 +37,6 @@ def get_model(model_type: ModelType):
     if model_type is ModelType.pickle:
         return FileResponse("saved_models/model_pickel/model.pkl")
 
-    if model_type is ModelType.json:
-        return FileResponse("saved_models/model_json/model_json.json")
-
     return HTTPException(
         status_code=404, detail=f"Wanted serialization method does not exist"
     )
