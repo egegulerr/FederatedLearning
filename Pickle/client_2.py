@@ -48,12 +48,7 @@ def Main():
         model.set_weights(weights_pickle)
         model, trained_data_length = train_model(model)
 
-    print("Model is trained. Sending it weights to server")
-    send_weights(trained_model.get_weights())
-
-    input(
-        "Waiting for ML Model from server to process weights. \n *****PRESS ENTER TO CONTINUE*****"
-    )
+    print("Federated Learning finished")
 
 
 if __name__ == "__main__":
