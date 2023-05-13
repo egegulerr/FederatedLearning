@@ -5,6 +5,7 @@ import uvicorn
 from fastapi.responses import FileResponse, Response
 from model import ModelWrapper
 import redis
+from codecarbon import EmissionsTracker
 
 NUMBER_OF_CLIENTS = 2
 
@@ -113,4 +114,7 @@ def run_api():
 
 
 if __name__ == "__main__":
+    tracker = EmissionsTracker()
+    tracker.start()
     run_api()
+    tracker.stop()
