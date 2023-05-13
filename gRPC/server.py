@@ -12,7 +12,7 @@ print("Redix databse started")
 
 
 class FederatedLearningServicer(message_pb2_grpc.FederatedLearningServicer):
-    NUMBER_OF_CLIENTS = 3
+    NUMBER_OF_CLIENTS = 4
 
     def IsWeightsReady(self, request, context):
         return message_pb2.IsReady(ready=True if redix.exists("new_weights") else False)
