@@ -43,7 +43,8 @@ def compile_model(model):
 def train_model(model):
     x_train, x_test, y_train, y_test = get_train_data()
     epochs = 1
-    batch_size = random.randint(40, 60)
+    # batch_size = random.randint(40, 60)
+    batch_size = 50
     model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size)
 
     # Evaluate the model
