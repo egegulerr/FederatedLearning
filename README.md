@@ -1,12 +1,8 @@
 # FederatedLearning
-Federated Learning System, in which the serialization method and communication protocols can be controlled
 
+Federated Learning System, in which the serialization method and communication protocols can be controlled.
+In this test system, I compared the energy conumption of gRPC + Protobuffer , FastAPI (REST) + FastAPI, FastAPI(REST) + Pickle
+For the energy testing purposes CodeCarbonAPI is used
+For creating a plots and barcharts Matplotlib is used
 
-# gRPC
-In gRPC folder you can find server and client scripts. Connection is established with gRPC and the weights are serialized using Protobuffer.
-
-# FASTAPI
-The client, api and server method at the base directory are using FAST API to communicate. Right now JSON is used to serialize weights.
-
-In FASTAPI the state of the variables are not stored between workers. Thats why Redis database is used. Since I am focusing on the energy consumption of the communication protocols and serialization methos.
-Redis database is also used in gRPC.
+In each folder you can find two client script and one server script. It is aimed to run each script in a different machine.
